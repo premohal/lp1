@@ -1,0 +1,87 @@
+import java.io.*;
+import java.util.*;
+
+public class bankers{
+    private int nr,np;
+    private int allocation[][];
+    private int max[][];
+    private int avail[][];
+    private int need[][];
+    private void input(){
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter No of Processes: ");
+        np= sc.nextInt();
+        System.out.println("Enter No of Resources: ");
+        nr= sc.nextInt();
+        allocation = new int[np][nr];
+        max = new int[np][nr];
+        need = new int[np][nr];
+        avail = new int[1][nr];
+        System.out.println("Enter Allocation Matrix:");
+        for(int i = 0; i < np ; i++){
+            for(int j = 0 ; j < nr; j++){
+                System.out.print("\nEnter " + i + "-" + j + "value: ");
+                allocation[i][j]= sc.nextInt();
+            }
+        }
+        System.out.println("Enter Maximum Resources Matrix:");
+        for(int i = 0; i < np ; i++){
+            for(int j = 0 ; j < nr; j++){
+                System.out.print("\nEnter " + i + "-" + j + "value: ");
+                max[i][j]= sc.nextInt();
+            }
+        }
+        System.out.println("Enter Available Resources Matrix:");
+        for(int j = 0 ; j < nr; j++){
+            System.out.print("\nEnter " + j + "value: ");
+            avail[0][j]= sc.nextInt();
+        }
+        for(int i = 0;i < np;i++){
+            for(int j = 0; j < nr; j++){
+                need[i][j] = max[i][j] - allocation[i][j];
+            }
+        }
+        sc.close();
+    }
+    private boolean check(int i){
+        for (int j = 0; j < nr; j++){
+            if(need[i][j] > avail[0][j]){
+                return false;
+            }
+        }
+        return true;
+    }
+    public void isSafe(){
+        input();
+        boolean done[] = new boolean[np];
+        int count = 0;
+        String Safeseq = "";
+        while(count < np){
+            boolean allocated = false;
+            for (int i = 0; i < np; i++){
+                if(!done[i] && check(i)){
+                    System.out.println("Process P" + i + "allocated safely");
+                    Safeseq += "P" + i +" ";
+                    for (int j = 0; j < nr; j++){
+                        avail[0][j] += allocation[i][j];
+                    }
+                    done[i] = true;
+                    allocated = true;
+                    count++;
+                    }
+                }
+            if(!allocated){
+                break;
+            }
+        }
+        if(count == np){
+                System.out.println("System is in Safe State\nSafe Sequence is: " + Safeseq);
+        }else {
+            System.out.println("System is not in Safe State"); 
+        } 
+    }
+    public static void main(String[] args){
+        bankers b = new bankers();
+        b.isSafe();
+    }
+}

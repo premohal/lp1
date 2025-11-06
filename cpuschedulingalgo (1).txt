@@ -1,0 +1,318 @@
+import java.io.* ;
+import java.util.* ;
+
+class FCFS{
+    int[] bt,at,p_id,ct,tat,wt;
+    int p;
+    FCFS(int[] arrivaltime,int[] bursttime,int nop,int[] pid){
+        bt = bursttime;
+        at = arrivaltime;
+        p = nop;
+        p_id = pid;
+        ct = new int[p];
+        tat = new int[p];
+        wt = new int[p];
+    }
+    void swap(int i, int j){
+        int temp;
+        temp = at[i];
+        at[i] = at[j];
+        at[j] = temp;
+
+        temp = bt[i];
+        bt[i] = bt[j];
+        bt[j] = temp;
+
+        temp = p_id[i];
+        p_id[i] = p_id[j];
+        p_id[j] = temp;
+    }
+    void calculate(){
+        for(int i = 0; i < p; i++){
+            for(int j = i + 1; j < p; j++){
+                if(at[i] > at[j]){
+                    swap(i,j);
+                }
+            }
+        }
+        ct[0] = at[0] + bt[0];
+        for(int i = 1; i < p; i++){
+            if(at[i] > ct[i - 1]){
+                ct[i] = at[i] + bt[i];
+            }else{
+                ct[i] = ct[i - 1] + bt[i];
+            }
+        }
+        for(int i = 0; i < p; i++){
+            tat[i] = ct[i] - at[i];
+            wt[i] = tat[i] - bt[i];
+        }
+    }
+    void executeFCFS(){
+        System.out.println("\nPID\tAT\tBT\tCT\tTAT\tWT");
+        for(int i = 0; i < p; i++){
+            System.out.println("P" + p_id[i] + "\t" + at[i] + "\t" + bt[i] + "\t" + ct[i] + "\t" + tat[i] + "\t" + wt[i]);
+        }
+    }
+}
+
+class PRIORITY{
+    int[] bt,at,p_id,ct,tat,wt,pr;
+    int p;
+    PRIORITY(int nop,int[] pid,int[] arrivaltime,int[] bursttime,int[] priority){
+        bt = bursttime;
+        at = arrivaltime;
+        p = nop;
+        p_id = pid;
+        pr = priority;
+        ct = new int[p];
+        tat = new int[p];
+        wt = new int[p];
+    }
+    void executePRIORITY(){ 
+        for(int i = 0; i < p ;i ++){
+            for(int j = i + 1; j < p; j ++){
+                if(pr[i] > pr[j]){
+                    int temp = pr[i];
+                    pr[i] = pr[j];
+                    pr[j] = temp;
+                    temp = at[i];
+                    at[i] = at[j];
+                    at[j] = temp;
+                    temp = bt[i];
+                    bt[i] = bt[j];
+                    bt[j]= temp;
+                    temp = p_id[i];
+                    p_id[i] = p_id[j];
+                    p_id[j] = temp;
+                }
+            }
+        }
+        ct[0] = at[0] + bt[0];
+        for(int i = 1; i < p; i++){
+            if(at[i] > ct[i - 1]){
+                ct[i] = at[i] + bt[i];
+            }else{
+                ct[i] = ct[i - 1] + bt[i];
+            }
+        }
+        for(int i = 0; i < p ; i++){
+            tat[i] = ct[i] - at[i];
+            wt[i]= tat[i] - bt[i];
+        }
+        int totalWT = 0, totalTAT = 0;
+        System.out.println("\nPID\tAT\tBT\tCT\tTAT\tWT");
+        for(int i = 0; i < p; i++){
+            System.out.println("P" + p_id[i] + "\t" + at[i] + "\t" + bt[i] + "\t" + ct[i] + "\t" + tat[i] + "\t" + wt[i]);
+            totalTAT += tat[i];
+            totalWT += wt[i];
+        }
+        System.out.println("\nAverage Waiting Time = " + (float) totalWT / p);
+        System.out.println("Average Turnaround Time = " + (float) totalTAT / p);
+    }
+}
+
+class SJF{
+    int[] bt,at,p_id,ct,tat,wt,pr;
+    int p;
+    SJF(int[] pid,int[] arrivaltime,int[] bursttime,int nop){
+        bt = bursttime;
+        at = arrivaltime;
+        p = nop;
+        p_id = pid;
+        ct = new int[p];
+        tat = new int[p];
+        wt = new int[p];
+    }
+    void executeSJF(){
+        int[] remainingbt = new int[p];
+        int[] rt = new int[p];            //response time
+        boolean[] pcompleted = new boolean[p];
+        int currenttime = 0, completedprocess = 0;
+        int totalWT = 0, totalTAT = 0, totalRT = 0;
+
+        for(int i = 0; i < p; i++){
+            remainingbt[i] = bt[i];
+            rt[i] = -1;              //-1 indicates not started yet
+        }
+
+        while(completedprocess < p){
+            int idx = -1;
+            int minbt = Integer.MAX_VALUE;
+            for(int i = 0; i < p; i++){
+                if(at[i] <= currenttime && !pcompleted[i] && remainingbt[i] < minbt){
+                    idx = i;
+                    minbt = remainingbt[i];
+                }
+            }
+            if(idx == -1){
+                currenttime++;
+                continue;
+            }
+            if(rt[idx] == -1){
+                rt[idx] = currenttime - at[idx];
+            }
+
+            remainingbt[idx]--;
+            currenttime++;
+
+            if(remainingbt[idx] == 0){
+                completedprocess ++;
+                pcompleted[idx] = true;
+                ct[idx] = currenttime;
+                tat[idx] = ct[idx] - at[idx];
+                wt[idx] = tat[idx] - bt[idx];
+                totalWT += wt[idx];
+                totalTAT += tat[idx];
+                totalRT += rt[idx];
+            }
+        }
+        System.out.println("\nPID\tAT\tBT\tCT\tTAT\tWT\tzRT");
+        for(int i = 0; i < p; i++){
+            System.out.println("P" + p_id[i] + "\t" + at[i] + "\t" + bt[i] + "\t" + ct[i] + "\t" + tat[i] + "\t" + wt[i] + "\t" + rt[i]);
+        }
+        System.out.println("\nAverage Waiting Time = " + (float) totalWT / p);
+        System.out.println("Average Turnaround Time = " + (float) totalTAT / p);
+        System.out.println("Average Response Time = " + (float) totalRT / p);
+    }
+}
+
+class ROUNDROBBIN{
+    int[] bt,at,p_id,ct,tat,wt,pr;
+    int p,q;
+    ROUNDROBBIN(int[] pid,int[] arrivaltime,int[] bursttime,int nop,int qt){
+        bt = bursttime;
+        at = arrivaltime;
+        p = nop;
+        p_id = pid;
+        q = qt;
+        ct = new int[p];
+        tat = new int[p];
+        wt = new int[p];
+    }
+    void executeROUNDROBBIN(){
+        int[] remainingbt = new int[p];
+        boolean[] done = new boolean[p];
+        Queue<Integer> qlist = new LinkedList<>();
+        int time = 0;
+        int completed = 0;
+        for(int i = 0; i < p ; i++){
+            remainingbt[i] = bt[i];
+        }
+        int minarrival = Integer.MAX_VALUE;
+        int first = 0;
+        for(int i = 0; i < p; i++){
+            if(at[i] < minarrival){
+                minarrival = at[i];
+                first = i;
+            }
+        }
+        time = at[first];
+        qlist.add(first);
+        done[first] = true;
+
+        while(completed != p){
+            if(qlist.isEmpty()){
+                int next = -1;
+                int minat = Integer.MAX_VALUE;
+                for(int i = 0; i < p; i++){
+                    if(!done[i] && at[i] < minat){
+                        minat = at[i];
+                        next = i;
+                    }
+                }
+                time = at[next];
+                qlist.add(next);
+                done[next] = true;
+            }
+            int i = qlist.poll();
+            if(remainingbt[i] > q){
+                time += q;
+                remainingbt[i] -= q;
+            }else{
+                time += remainingbt[i];
+                remainingbt[i] = 0;
+                ct[i] = time;
+                completed++;
+                tat[i] = ct[i] - at[i];
+                wt[i] = tat[i] - bt[i];
+            }
+            for (int j = 0; j < p; j++){
+                if(!done[j]  && at[j] <= time){
+                    qlist.add(j);
+                    done[j] = true;
+                }
+            }
+            if(remainingbt[i] > 0){
+                qlist.add(i);
+            }
+        }
+        int totalWT = 0, totalTAT = 0;
+        System.out.println("\nPID\tAT\tBT\tCT\tTAT\tWT");
+        for(int i = 0; i < p; i++){
+            System.out.println("P" + p_id[i] + "\t" + at[i] + "\t" + bt[i] + "\t" + ct[i] + "\t" + tat[i] + "\t" + wt[i]);
+            totalTAT += tat[i];
+            totalWT += wt[i];
+        }
+        
+        System.out.println("\nAverage Waiting Time = " + (float) totalWT / p);
+        System.out.println("Average Turnaround Time = " + (float) totalTAT / p);
+    }
+}
+public class CpuScheduling {
+    public static void main(String[] args){
+        System.out.println("CPU Scheduling Algorithms");
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter number of processes: ");
+        int nop = sc.nextInt();
+        int arrivaltime[] = new int[nop];
+        int bursttime[]= new int[nop];
+        int[] pid = new int[nop];
+        for(int i=0;i<nop;i++){
+            pid[i]= i+1;
+            System.out.println("Enter arrival time of process " + (i+1) + ": ");
+            arrivaltime[i]= sc.nextInt();
+            System.out.println("Enter burst time of process " + (i+1) + ": ");
+            bursttime[i]= sc.nextInt();
+        }
+        while(true){
+            System.out.println("\nSelect any CPU Scheduling Algorithm: \n1. FCFS\n2. PRIORITY(NON PREEMPTIVE\n3. SJF(PREEMPTIVE)\n4. ROUND ROBBIN\nENter your choice no: ");
+                int choice = sc.nextInt();
+                switch(choice){
+                case 1:
+                    FCFS fcfs = new FCFS(arrivaltime, bursttime, nop,pid);
+                    fcfs.calculate();
+                    fcfs.executeFCFS();
+                    break;
+                case 2:
+                    int priority[]= new int[nop];
+                    for(int i=0;i<nop;i++){
+                        System.out.println("Enter priority of process " + (i+1) + ": ");
+                        priority[i]= sc.nextInt();
+                    }
+                    PRIORITY pr = new PRIORITY(nop,pid,arrivaltime, bursttime,priority);
+                    pr.executePRIORITY();
+                    break;
+                case 3:
+                
+                    SJF sjf = new SJF(pid,arrivaltime, bursttime, nop);
+                    sjf.executeSJF();
+                    break;
+                case 4:
+                    System.out.println("Enter quantum time: ");
+                    int qt = sc.nextInt();
+                    ROUNDROBBIN rr = new ROUNDROBBIN(pid,arrivaltime, bursttime, nop,qt);
+                    rr.executeROUNDROBBIN();
+                    break;
+                default:
+                    System.out.println("Invalid Choice");
+                    break;
+                }
+                System.out.println("\nDo you want to continue? (1(YES)/0(NO) : ");
+                int cont = sc.nextInt();
+                if(cont == 0){
+                    break;
+                }
+        }
+    }
+}

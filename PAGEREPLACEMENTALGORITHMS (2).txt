@@ -1,0 +1,166 @@
+import java.io.*;
+import java.util.*;
+
+class FIFO{
+    int fc,pc;
+    int pageFaults = 0;
+    int pageHits = 0;
+    int[] referencestring;
+    FIFO(int pageCount,int framesCount,int[] pages){
+        fc = framesCount;
+        pc = pageCount;
+        referencestring = pages;
+    }
+    void executeFIFO(){
+        Queue<Integer> frames = new LinkedList<>();      //to store currently loaded pages
+        System.out.println("\nFIFO Page Replacement Algorithm\n");
+        for(int i = 0; i < pc ; i++){
+            int currentpage = referencestring[i];
+            if(frames.contains(currentpage)){
+                pageHits++;
+                System.out.println("Page " + currentpage + "--> HIT | Frames: " + frames);
+            }else{
+                pageFaults++;
+                if(frames.size() == fc){
+                    int removed = frames.poll(); //remove the oldest page(at index 0 - first page in queue)
+                    System.out.println("FULL! Page " + removed + " removed from frames.");
+                }
+                frames.add(currentpage);
+                System.out.println("Page " + currentpage + "--> FAULT | Frames: " + frames);
+            }
+        }
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+}
+
+class LRU{
+    int fc,pc;
+    int pageFaults = 0;
+    int pageHits = 0;
+    int[] referencestring;
+    LRU(int pageCount,int framesCount,int[] pages){
+        fc = framesCount;
+        pc = pageCount;
+        referencestring = pages;
+    }
+    void executeLRU(){
+        List<Integer> frames = new ArrayList<>(fc);     //to store currently loaded pages
+        System.out.println("\nLRU Page Replacement Algorithm\n");
+        for(int i = 0; i < pc; i++){
+            int currentpage = referencestring[i];
+            if(frames.contains(currentpage)){
+                pageHits++;
+                //Move page to end(most recently used)(last page is most recently used)
+                frames.remove(Integer.valueOf(currentpage));
+                frames.add(currentpage);
+                System.out.println("Page " + currentpage + "--> HIT | Frames: " + frames);
+            }else{
+                pageFaults++;
+                if(frames.size() == fc){
+                    int removed = frames.remove(0); //remove the least recently used page(at index 0 - first page in array)
+                    System.out.println("FULL! Page " + removed + " removed from frames.");
+                }
+                frames.add(currentpage);
+                System.out.println("Page " + currentpage + "--> FAULT | Frames: " + frames);
+            }
+        }
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+}
+
+class Optimal{
+    int fc,pc;
+    int pageFaults = 0;
+    int pageHits = 0;
+    int[] referencestring;
+    Optimal(int pageCount,int framesCount,int[] pages){
+        fc = framesCount;
+        pc = pageCount;
+        referencestring = pages;
+    }
+    void executeOptimal(){
+        List<Integer> frames = new ArrayList<>(pc);
+        System.out.println("\nOptimal Page Replacement Algorithm\n");
+        for(int i = 0; i<pc;i++){
+            int currentpage = referencestring[i];
+            if(frames.contains(currentpage)){
+                pageHits++;
+                System.out.println("Page " + currentpage +"--> HIT | Frames: " + frames);
+                continue;
+            }
+            pageFaults++;
+            if(frames.size() < fc){
+                frames.add(currentpage);
+
+            }else{
+                int farthestindex = -1;
+                int pagetoreplace = -1;
+                for(int page: frames){
+                    int nextuse = Integer.MAX_VALUE;
+                    for ( int j = i + 1; j < pc; j++){
+                        if(referencestring[j] == page){
+                            nextuse = j;
+                            break;
+                        }
+                    }
+                    if(nextuse == Integer.MAX_VALUE){
+                        pagetoreplace = page;
+                        break;
+                    }
+                    if(nextuse > farthestindex){
+                        farthestindex = nextuse;
+                        pagetoreplace = page;
+                    }
+                }
+                frames.remove(Integer.valueOf(pagetoreplace));
+                frames.add(currentpage);
+            }
+             System.out.println("Step " + (i + 1) + "Page " + currentpage +"--> FAULT | Frames: " + frames);
+        }
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+        System.out.println("Total Page Hits: " + pageHits);
+    }
+}
+
+public class pagereplacement {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter no of frames: ");
+        int framesCount = sc.nextInt();
+        System.out.println("Enter number of pages:");
+        int pageCount = sc.nextInt();
+        int[] pages = new int[pageCount];
+        System.out.println("ENter reference string: ");
+        for(int i = 0; i < pageCount ; i++){
+            pages[i]= sc.nextInt();
+        }
+        while(true){
+            System.out.println("\nSelect any Page Replacement Algorithm: \n1. FIFO\n2. LRU\n3. Optimal ALgorithm\nENter your choice no: ");
+            int choice = sc.nextInt();
+            switch(choice){
+            case 1:
+                FIFO fifo = new FIFO(pageCount,framesCount, pages);
+                fifo.executeFIFO();
+                break;
+            case 2:
+                LRU lru = new LRU(pageCount,framesCount, pages);
+                lru.executeLRU();
+                break;
+            case 3:
+                Optimal optimal = new Optimal(pageCount,framesCount, pages);
+                optimal.executeOptimal();
+                break;
+            default:
+                System.out.println("Invalid Choice");
+                break;
+            }
+            System.out.println("\nDo you want to continue? (1(YES)/0(NO) : ");
+            int cont = sc.nextInt();
+            if(cont == 0){
+                break;
+            }
+        }
+    }
+}
